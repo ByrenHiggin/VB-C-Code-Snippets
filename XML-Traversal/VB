@@ -3,10 +3,7 @@
         Try
             _XMLTraversalAndBuilder()
         Catch ex As Exception
-            P_Error.Visible = True
-            L_linenum.Text = ex.Message.Split("Line")(1).Remove(0, 4).Split(",")(0)
-            L_exception.Text = ex.Message
-            L_Error.Text = _getlinepreview(_GetTOCFileLocation, CType(L_linenum.Text, Integer))
+            'errortext = _getlinepreview(_GetTOCFileLocation, CType(L_linenum.Text, Integer))
         End Try
     End Sub
     
@@ -77,13 +74,6 @@
     End Sub
     
     Private Sub _InsertRecord(uid As Integer, label As String, parentid As Integer, l_id As String)
-        Using connection As New SqlConnection(connectionString)
-            Dim command As New SqlCommand()
-            command.Connection = connection
-            command.CommandText = ""
-            'OBFUSCATED
-            connection.Open()
-            command.ExecuteNonQuery()
-        End Using
+        'Add to records system
     End Sub
     
