@@ -1,0 +1,89 @@
+    'Function: Read through the XML doc specified in _GetTOCFilepath() and attemtp to build a database from it. If an exception occurs, catch exception and build an error message.
+    Protected Sub BTN_genXML_Click(sender As Object, e As System.EventArgs)
+        Try
+            _XMLTraversalAndBuilder()
+        Catch ex As Exception
+            P_Error.Visible = True
+            L_linenum.Text = ex.Message.Split("Line")(1).Remove(0, 4).Split(",")(0)
+            L_exception.Text = ex.Message
+            L_Error.Text = _getlinepreview(_GetTOCFileLocation, CType(L_linenum.Text, Integer))
+        End Try
+    End Sub
+    
+    'Function: access the broken file and return a preview of the error generated from _XMLTRAVERSALANDBUILDER
+    Private Function _getlinepreview(filepath As String, linenum As Integer) As String
+        Dim s As String = ""
+        Using File As New StreamReader(_GetTOCFileLocation)
+            For i As Integer = 1 To linenum - 2
+                If (File.ReadLine() Is Nothing) Then
+                    Throw New ArgumentOutOfRangeException("Line Number is not valid, ensure the file is not empty")
+                End If
+            Next
+            Try
+                For i As Integer = 1 To 3
+                    Dim line As String = File.ReadLine()
+                    If line Is Nothing Then
+                        Throw New ArgumentOutOfRangeException("Line Number is not valid, ensure the file is not empty")
+                    End If
+                    line = line.Replace("<", "&lt;").Replace(">", "&gt;")
+                    If (i = 2) Then
+                        line = "<strong>" + line + "</strong>"
+                    End If
+                    s = s + line + "<br />"
+                Next
+            Catch ex As Exception
+            End Try
+        End Using
+        Return s
+    End Function
+    
+    'Function: Load the XML document, and begin lateral traversal. 
+    Private Sub _XMLTraversalAndBuilder()
+        Dim xmlDoc As New XmlDocument()
+        Using fs As New FileStream(_GetTOCFileLocation(), FileMode.Open, FileAccess.Read, FileShare.Read)
+            xmlDoc.Load(fs)
+            Dim root As XmlNode = xmlDoc.DocumentElement
+            _scanChildRecursive(root, 0, uid)
+        End Using
+        P_Error.Visible = False
+        P_success.Visible = True
+    End Sub
+    
+    'Function to return file when loaded. abstracted if we need to go cross-server etc.
+    Private Function _GetTOCFileLocation() As String
+        Return Server.MapPath("toc.xml")
+    End Function
+    
+    'Recursive depth-breadth node search
+    Private Sub _scanChildRecursive(node As XmlNode, level As Integer, parentid As Integer)
+        For Each n As XmlNode In node.ChildNodes
+            If (n.Name.ToLower() = "entry") Then
+                _GetNodeData(n, level, parentid)
+            End If
+            If (n.HasChildNodes) Then
+                If (n.Attributes("expandable") Is Nothing) Then
+                    _scanChildRecursive(n, level + 1, uid)
+                End If
+            End If
+        Next
+    End Sub
+    
+    Private Sub _GetNodeData(ByRef xml As XmlNode, level As Integer, ByVal parentid As Integer)
+        If Not (xml.Attributes("id") Is Nothing) Then
+            Dim label As String = If(xml.Attributes("label") Is Nothing, xml.Attributes("layer").Value, xml.Attributes("label").Value)
+            uid += 1
+            _InsertRecord(uid, label, parentid, xml.Attributes("id").Value)
+        End If
+    End Sub
+    
+    Private Sub _InsertRecord(uid As Integer, label As String, parentid As Integer, l_id As String)
+        Using connection As New SqlConnection(connectionString)
+            Dim command As New SqlCommand()
+            command.Connection = connection
+            command.CommandText = ""
+            'OBFUSCATED
+            connection.Open()
+            command.ExecuteNonQuery()
+        End Using
+    End Sub
+    
