@@ -1,4 +1,6 @@
+    'Names for nodes to scan for
     Dim XMLNodeName as string = "entry"
+    'A class scoped variable to increment an arbitrary surrogate key for each valid scanned record.
     Dim uid as integer
     
     'Function: Read through the XML doc specified in _GetTOCFilepath() and attemtp to build a database from it. If an exception occurs, catch exception and build an error message.
@@ -20,8 +22,9 @@
                 End If
             Next
             Try
+                Dim line As String
                 For i As Integer = 1 To 3
-                    Dim line As String = File.ReadLine()
+                    line = File.ReadLine()
                     If line Is Nothing Then
                         Throw New ArgumentOutOfRangeException("Line Number is not valid, ensure the file is not empty")
                     End If
@@ -45,8 +48,7 @@
             Dim root As XmlNode = xmlDoc.DocumentElement
             _scanChildRecursive(root, 0, uid)
         End Using
-        P_Error.Visible = False
-        P_success.Visible = True
+        'Show success
     End Sub
     
     'Function to return file when loaded. abstracted if we need to go cross-server etc.
@@ -68,11 +70,10 @@
     End Sub
     
     Private Sub _GetNodeData(ByRef xml As XmlNode, level As Integer, ByVal parentid As Integer)
-        If Not (xml.Attributes("id") Is Nothing) Then
-            Dim label As String = If(xml.Attributes("label") Is Nothing, xml.Attributes("layer").Value, xml.Attributes("label").Value)
-            uid += 1
-            _InsertRecord(uid, label, parentid, xml.Attributes("id").Value)
-        End If
+        'Logic for removing potentially invalid records from bieng added, i.e. duplicate values, etc. 
+        Dim label As String = If(xml.Attributes("label") Is Nothing, xml.Attributes("layer").Value, xml.Attributes("label").Value)
+        uid += 1
+        _InsertRecord(uid, label, parentid, xml.Attributes("id").Value)
     End Sub
     
     Private Sub _InsertRecord(uid As Integer, label As String, parentid As Integer, l_id As String)
