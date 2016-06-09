@@ -1,3 +1,6 @@
+    Dim XMLNodeName as string = "entry"
+    Dim uid as integer
+    
     'Function: Read through the XML doc specified in _GetTOCFilepath() and attemtp to build a database from it. If an exception occurs, catch exception and build an error message.
     Protected Sub BTN_genXML_Click(sender As Object, e As System.EventArgs)
         Try
@@ -54,13 +57,12 @@
     'Recursive depth-breadth node search
     Private Sub _scanChildRecursive(node As XmlNode, level As Integer, parentid As Integer)
         For Each n As XmlNode In node.ChildNodes
-            If (n.Name.ToLower() = "entry") Then
+            If (n.Name.ToLower() = XMLNodeName) Then
                 _GetNodeData(n, level, parentid)
             End If
             If (n.HasChildNodes) Then
-                If (n.Attributes("expandable") Is Nothing) Then
-                    _scanChildRecursive(n, level + 1, uid)
-                End If
+                'Use logic here to remove nodes you do not with to scan, i.e. disabled=true etc. 
+                _scanChildRecursive(n, level + 1, uid)
             End If
         Next
     End Sub
