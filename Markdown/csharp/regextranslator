@@ -1,0 +1,29 @@
+
+private string BoldEvaluator(Match match)
+{
+	return string.Format("<strong>{0}</strong>", match.Groups(2).Value);
+}
+
+private string EmphasisEvaluator(Match match)
+{
+	return string.Format("<i>{0}</i>", match.Groups(2).Value);
+}
+
+private string URLEvaluator(Match match)
+{
+	return string.Format("<a href='{1}'>{0}</a>", match.Groups(2).Value, match.Groups(5).Value);
+}
+
+
+private string DeMarkdown(string str)
+{
+	string fixedString = str;
+	//Bold
+	fixedString = Regex.Replace(fixedString, "(\\*\\*|__) (?=\\S) (.+?[*_]*) (?<=\\S) \\1", new MatchEvaluator(BoldEvaluator), RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
+	//Emphasis
+	fixedString = Regex.Replace(fixedString, "(\\*|_) (?=\\S) (.+?) (?<=\\S) \\1", new MatchEvaluator(EmphasisEvaluator), RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
+	//URL
+	fixedString = Regex.Replace(fixedString, "(\\[)(.+?)(\\])(\\()(.+?)(\\))", new MatchEvaluator(URLEvaluator), RegexOptions.IgnorePatternWhitespace | RegexOptions.Singleline);
+
+	return fixedString;
+}
