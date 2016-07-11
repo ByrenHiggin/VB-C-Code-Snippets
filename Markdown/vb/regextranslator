@@ -1,0 +1,30 @@
+    Private Function BoldEvaluator(match As Match) As String
+        Return String.Format("<strong>{0}</strong>", match.Groups(2).Value)
+    End Function
+    
+    Private Function EmphasisEvaluator(match As Match) As String
+        Return String.Format("<i>{0}</i>", match.Groups(2).Value)
+    End Function
+    
+    Private Function URLEvaluator(match As Match) As String
+        Return String.Format("<a href='{1}'>{0}</a>", match.Groups(2).Value, match.Groups(5).Value)
+    End Function
+    
+    
+    Private Function DeMarkdown(str As String) As String
+        Dim fixedString As String = str
+        'Bold
+        fixedString = Regex.Replace(fixedString, "(\*\*|__) (?=\S) (.+?[*_]*) (?<=\S) \1", _
+                          New MatchEvaluator(AddressOf BoldEvaluator), _
+                          RegexOptions.IgnorePatternWhitespace Or RegexOptions.Singleline)
+        'Emphasis
+        fixedString = Regex.Replace(fixedString, "(\*|_) (?=\S) (.+?) (?<=\S) \1", _
+                          New MatchEvaluator(AddressOf EmphasisEvaluator), _
+                          RegexOptions.IgnorePatternWhitespace Or RegexOptions.Singleline)
+        'URL
+        fixedString = Regex.Replace(fixedString, "(\[)(.+?)(\])(\()(.+?)(\))", _
+                          New MatchEvaluator(AddressOf URLEvaluator), _
+                          RegexOptions.IgnorePatternWhitespace Or RegexOptions.Singleline)
+        
+        Return fixedString
+    End Function
